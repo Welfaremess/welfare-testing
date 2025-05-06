@@ -390,13 +390,7 @@
       modal.show();
     }
   });
-  document.getElementById("installmentForm").addEventListener("click", function(event) {
-    if (!userEmail) {
-      event.preventDefault();
-      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
-      modal.show();
-    }
-  });
+  
 // Handle showing and hiding screenshot input based on installment mode
 document.getElementById("installmentMode").addEventListener("change", function () {
   const screenshotContainer = document.getElementById("screenshotContainer");
@@ -428,6 +422,7 @@ document.getElementById("installmentform").addEventListener("submit", async func
   event.preventDefault();
 
   // Get form data
+  const email = localStorage.getItem('welfareEmail');
   const name = document.getElementById("name").value.trim();
   const roomNumber = document.getElementById("roomNumber").value.trim();
   const installmentDate = document.getElementById("installmentDate").value;
@@ -463,6 +458,7 @@ document.getElementById("installmentform").addEventListener("submit", async func
 
   // Send data to Google Sheets
   const data = {
+    email,
     name,
     roomNumber,
     installmentDate,
