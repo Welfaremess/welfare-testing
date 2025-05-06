@@ -390,17 +390,14 @@
       modal.show();
     }
   });
+  document.getElementById("installmentform").addEventListener("click", function(event) {
+    if (!userEmail) {
+      event.preventDefault();
+      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+      modal.show();
+    }
+  });
 	
-  document.getElementById("installmentform").addEventListener("change", function () {
-  const screenshotContainer = document.getElementById("screenshotContainer");
-  // Check if userEmail is present
-  if (userEmail !== '') {
-    screenshotContainer.style.display = "block";  // Show screenshot container if userEmail exists
-  } else {
-    screenshotContainer.style.display = "none";   // Hide screenshot container if no email
-  }
-});
-
 // Handle showing and hiding screenshot input based on installment mode
 document.getElementById("installmentMode").addEventListener("change", function () {
   const screenshotContainer = document.getElementById("screenshotContainer");
