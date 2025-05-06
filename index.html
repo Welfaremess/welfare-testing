@@ -1,43 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload to Google Drive through app script</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
 </head>
 <body>
-  <h1>Upload File to Google Drive thorugh app script</h1>
-  <form id="fileUploadForm" enctype="multipart/form-data">
-    <input type="file" id="fileInput" name="file" required>
-    <button type="submit">Upload</button>
-  </form>
+    <h2>Upload File</h2>
+    
+    <!-- File upload form -->
+    <form id="fileUploadForm">
+        <input type="file" id="fileInput" name="file" />
+        <button type="submit">Upload File</button>
+    </form>
 
-  <script>
-    document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
-      event.preventDefault();
+    <script>
+        document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
 
-      var fileInput = document.getElementById('fileInput');
-      var file = fileInput.files[0];
+            // Get the file input element
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0]; // Get the first file (if any)
 
-      if (file) {
-        var formData = new FormData();
-        formData.append('file', file);
+            if (file) {
+                var formData = new FormData(); // Create a FormData object
+                formData.append('file', file); // Append the file to the formData object
 
-        fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-          alert('File uploaded successfully');
-          console.log(data);
-        })
-        .catch(error => {
-          alert('Error uploading file');
-          console.error(error);
+                // Send the file to Google Apps Script Web App
+                fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
+                    method: 'POST',
+                    body: formData // Send the formData (which contains the file) in the request body
+                })
+                .then(response => response.json()) // Parse the JSON response
+                .then(data => {
+                    alert('File uploaded successfully');
+                    console.log('Response from server:', data); // Log server response
+                })
+                .catch(error => {
+                    alert('Error uploading file');
+                    console.error('Error:', error); // Log the error if upload fails
+                });
+            } else {
+                alert('Please select a file to upload');
+            }
         });
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
