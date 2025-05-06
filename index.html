@@ -498,6 +498,7 @@ async function uploadScreenshot(screenshot) {
             const base64String = reader.result.split(',')[1]; // Remove the data URI prefix
 	    // Construct the file name in the desired format
             const submitting = "submitting_at"; // You can replace this with the actual submitting value if needed
+	    const email = localStorage.getItem('welfareEmail');
 	    const name = document.getElementById("name").value.trim();
 	    const roomNumber = document.getElementById("roomNumber").value.trim();
 	    const installmentDate = document.getElementById("installmentDate").value;
