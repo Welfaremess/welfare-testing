@@ -1,588 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welfare Mess</title>
-  
-  <!-- Google Fonts (Roboto) -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-  
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Drive File Upload</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        // Step 1: Load the Google API client library
+        function loadGAPI() {
+            gapi.load('client:auth2', initGAPI);
+        }
 
-  <!-- Bootstrap Bundle JS (includes Bootstrap JS + Popper.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        // Step 2: Initialize the Google API client with your credentials
+        function initGAPI() {
+            gapi.client.init({
+                apiKey: 'YOUR_API_KEY',  // Replace with your API key
+                clientId: 'YOUR_CLIENT_ID.apps.googleusercontent.com',  // Replace with your Client ID
+                scope: 'https://www.googleapis.com/auth/drive.file',  // Permission to upload files
+                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+            }).then(function () {
+                console.log('Google API Client Initialized');
+                // After initialization, check if the user is already signed in.
+                if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+                    console.log('User is already signed in.');
+                } else {
+                    // If not signed in, trigger the sign-in process
+                    document.getElementById('sign-in-btn').style.display = 'block';
+                }
+            }).catch(function (error) {
+                console.error('Error initializing API client: ', error);
+            });
+        }
 
-  <!-- Google API JavaScript -->
-  <script async defer src="https://apis.google.com/js/api.js" onload="initializeApiClient()"></script>
+        // Step 3: Sign the user in
+        function signIn() {
+            gapi.auth2.getAuthInstance().signIn().then(function () {
+                console.log('User signed in');
+                document.getElementById('sign-in-btn').style.display = 'none';
+                document.getElementById('file-input').style.display = 'block';
+            }).catch(function (error) {
+                console.error('Error signing in: ', error);
+            });
+        }
 
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f7f9fc;
-      margin: 0;
-      padding-top: 60px;
-    }
+        // Step 4: File Upload Function
+        function uploadFileToDrive(file) {
+            var fileMetadata = {
+                'name': file.name,  // Name of the file on Drive
+                'mimeType': file.type  // MIME type of the file
+            };
 
-    .top-header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background-color: #0d6efd;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.25rem;
-      font-weight: 500;
-      z-index: 1000;
-    }
+            var media = {
+                mimeType: file.type,
+                body: file  // Content of the file
+            };
 
-    .refresh-btn {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: white;
-      background: none;
-      border: none;
-      font-size: 1.25rem;
-      cursor: pointer;
-    }
+            // Create the file on Google Drive
+            gapi.client.drive.files.create({
+                resource: fileMetadata,
+                media: media,
+            }).then(function (response) {
+                console.log('File uploaded successfully:', response);
+                alert('File uploaded! You can view it [here](https://drive.google.com/file/d/' + response.result.id + '/view)');
+            }).catch(function (error) {
+                console.error('Error uploading file:', error);
+            });
+        }
 
-    .nav-tabs {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background-color: white;
-      border-top: 1px solid #ddd;
-      justify-content: space-around;
-      z-index: 999;
-    }
+        // Step 5: Trigger File Selection
+        function triggerFileSelection() {
+            var inputElement = document.createElement('input');
+            inputElement.type = 'file';
+            inputElement.accept = '*/*';  // You can specify allowed file types
+            inputElement.addEventListener('change', function (event) {
+                var file = event.target.files[0];
+                if (file) {
+                    console.log('File selected:', file);
+                    uploadFileToDrive(file);  // Upload the selected file
+                }
+            });
 
-    .nav-tabs .nav-link {
-      text-align: center;
-      font-size: 0.8rem;
-      padding: 0.5rem 0;
-    }
+            inputElement.click();  // Trigger file selection dialog
+        }
 
-    .nav-tabs .nav-link i {
-      display: block;
-      font-size: 1.5rem;
-      margin-bottom: 0.2rem;
-    }
-
-    .tab-content {
-      padding: 1rem;
-      padding-bottom: 100px;
-    }
-
-    #setEmail .email-wrapper {
-      min-height: 50vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-
-    #setEmail input {
-      max-width: 300px;
-    }
-
-    .about-section {
-      margin-top: 0rem;
-      font-size: 0.9rem;
-      color: #555;
-      text-align: center;
-    }
-
-    .card {
-      margin-bottom: 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      transition: transform 0.2s;
-    }
-
-    .card:hover {
-      transform: scale(1.01);
-    }
-
-    @media (max-width: 576px) {
-      .card p {
-        font-size: 0.9rem;
-      }
-    }
-  </style>
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+        // Call to load and initialize the Google API
+        window.onload = function() {
+            loadGAPI();
+        };
+    </script>
 </head>
 <body>
-
-<div class="top-header">
-  Welfare Mess
-  <button class="refresh-btn" onclick="location.reload()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
-</div>
-
-<!-- Modal for email submission -->
-<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="emailModalLabel">Enter your Email</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <input type="email" id="emailInput" class="form-control" placeholder="Enter your email" />
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" onclick="saveEmail()">Submit</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Error Modal for invalid email -->
-<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="errorModalLabel">Invalid Email!</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Please enter a valid email address.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Success Modal to notify that email has been saved -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="successModalLabel">Email Saved!</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Your email has been successfully saved.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="container-fluid tab-content" id="tabContent">
-  <div class="tab-pane fade show active" id="setEmail" role="tabpanel">
-    <div class="email-wrapper">
-      <h4 class="mb-3">Enter your Email</h4>
-      <input type="email" id="emailInputTab" class="form-control" placeholder="Enter your email" />
-      <button class="btn btn-primary mt-3" onclick="saveEmailTab()">Submit</button>
-      <div id="savedEmailDisplay" class="mt-3">
-        <p><strong>Saved Email: </strong><span id="savedEmail"></span></p>
-      </div>
-    </div>
-    <div class="about-section">
-      <hr />
-      <p><strong>This app is created by Rahul Gupta.</strong></p>
-      <p>Email: rkgchpc@gmail.com</p>
-      <p>Phone: +91 89053 37897</p>
-    </div>
-  </div>
-
-
-  <div class="tab-pane fade" id="Details" role="tabpanel">
-    <div id="DetailsContent"></div>
-  </div>
-  <div class="tab-pane fade" id="diets" role="tabpanel">
-    <div id="dietsContent"></div>
-  </div>
-  <div class="tab-pane fade" id="announcements" role="tabpanel"></div>
-  <div class="tab-pane fade" id="dietMenu" role="tabpanel"></div>
-  <div class="tab-pane fade" id="personnel" role="tabpanel"></div>
-<div class="tab-pane fade" id="installmentform" role="tabpanel">
-  <div class="container mt-4">
-    <!-- Clickable Card -->
-    <div class="card" id="installmentCard">
-      <div class="card-header">
-        <h4>Update Installment Information</h4>
-      </div>
-      <div class="card-body">
-        <p>Click here to update installment information.</p>
-      </div>
-    </div>
-
-    <!-- Hidden Form Inside the Card (Initially hidden) -->
-    <div id="installmentForm" class="card mt-3" style="display: none;">
-      <div class="card-header">
-        <h4>Update Installment Information</h4>
-      </div>
-      <div class="card-body">
-        <form id="installmentform">
-          <div class="mb-3">
-            <label for="name" class="form-label">Name</label>
-            <input type="text" class="form-control" id="name" required />
-          </div>
-          <div class="mb-3">
-            <label for="roomNumber" class="form-label">Room Number</label>
-            <input type="text" class="form-control" id="roomNumber" maxlength="3" required />
-            <small id="roomNumberHelp" class="form-text text-muted">Enter a valid room number (max 3 digits).</small>
-          </div>
-          <div class="mb-3">
-            <label for="installmentDate" class="form-label">Installment Date</label>
-            <input type="date" class="form-control" id="installmentDate" required />
-          </div>
-          <div class="mb-3">
-            <label for="installmentAmount" class="form-label">Installment Amount</label>
-            <input type="number" class="form-control" id="installmentAmount" required />
-          </div>
-          <div class="mb-3">
-            <label for="installmentMode" class="form-label">Installment Mode</label>
-            <select class="form-select" id="installmentMode" required>
-              <option value="Cash">Cash</option>
-              <option value="Online">Online</option>
-            </select>
-          </div>
-          <div class="mb-3" id="screenshotContainer" style="display:none;">
-            <label for="screenshot" class="form-label">Attach Screenshot (Only for Online)</label>
-            <input type="file" class="form-control" id="screenshot" accept="image/*" />
-          </div>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<ul class="nav nav-tabs nav-fill" id="tabs">
-  <li class="nav-item">
-    <a class="nav-link active" data-bs-toggle="tab" href="#setEmail"><i class="fas fa-envelope"></i>Email</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" id="DetailsLink" data-bs-toggle="tab" href="#Details"><i class="fas fa-money-bill-wave"></i>Details</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" id="dietsLink" data-bs-toggle="tab" href="#diets"><i class="fas fa-drumstick-bite"></i>Diets</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#announcements"><i class="fas fa-bullhorn"></i>Announcements</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#dietMenu"><i class="fas fa-utensils"></i>Diet Menu</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#personnel"><i class="fas fa-user-friends"></i>Team</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#installmentform"><i class="fas fa-money-check-alt"></i>Instalments</a>
-  </li>
-
-</ul>
-
-<script>
-  let gapiLoaded = false;
-  const sheetId = '1KCgj6xJNj7gpJEwKH8fj3I_SldZsg1mKHiOA_8VESC0';
-  const apiKey = 'AIzaSyCzg84aqc_4Phwc142-HqDGYMv9Dy2Ctqo';
-  const sheetNames = ['Basic details', 'Diets', 'Announcement', 'Diet Menu History', 'Key Personnel','Instalments'];
-
-  let userEmail = localStorage.getItem('welfareEmail') || '';
-
-  function displaySavedEmail() {
-    const savedEmailElement = document.getElementById('savedEmail');
-    savedEmailElement.textContent = userEmail ? userEmail : "No email saved yet.";
-  }
-
-  function saveEmailTab() {
-    userEmail = document.getElementById('emailInputTab').value;
-    if (!isValidEmail(userEmail)) {
-      showErrorDialog();
-      return;
-    }
-    localStorage.setItem('welfareEmail', userEmail);
-    showSuccessDialog();
-    displaySavedEmail();
-    setTimeout(() => location.reload(), 2000); // Delay reload for 2 seconds to allow modal visibility
-  }
-
-  function saveEmail() {
-    userEmail = document.getElementById('emailInput').value;
-    if (!isValidEmail(userEmail)) {
-      showErrorDialog();
-      return;
-    }
-    localStorage.setItem('welfareEmail', userEmail);
-    showSuccessDialog();
-    displaySavedEmail();
-    setTimeout(() => location.reload(), 2000); // Delay reload for 2 seconds to allow modal visibility
-  }
-
-  function isValidEmail(email) {
-    const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    return regex.test(email);
-  }
-
-  function showErrorDialog() {
-    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-    errorModal.show();
-  }
-
-  function showSuccessDialog() {
-    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-    successModal.show();
-  }
-
-  async function fetchSheet(sheet, filterByEmail = false) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheet}?alt=json&key=${apiKey}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!data.values) return [];
-    const headers = data.values[0];
-    const rows = data.values.slice(1);
-    const filtered = filterByEmail ? rows.filter(row => row[0]?.toLowerCase() === userEmail.toLowerCase()) : rows;
-    return filtered.map(row => Object.fromEntries(headers.map((key, i) => [key, row[i] || '']))); 
-  }
-
-  function renderCard(item) {
-    return `<div class="card p-3">
-      ${Object.entries(item).map(([key, val]) => {
-  	const formattedVal = val.replace(/\n/g, '<br>');
-  		return `<p><strong>${key}</strong><br>${formattedVal}</p>`;
-		}).join('')}
-
-    </div>`;
-  }
-
-  function renderTab(tabId, data) {
-    document.getElementById(tabId).innerHTML = data.length ? data.map(renderCard).join('') : '<p>No data found.</p>';
-  }
-
-  async function initTabs() {
-    renderTab('announcements', await fetchSheet(sheetNames[2]));
-    renderTab('dietMenu', await fetchSheet(sheetNames[3]));
-    renderTab('personnel', await fetchSheet(sheetNames[4]));
-
-    if (userEmail) {
-      renderTab('DetailsContent', await fetchSheet(sheetNames[0], true));
-      renderTab('dietsContent', await fetchSheet(sheetNames[1], true));
-    }
-  }
-
-  displaySavedEmail();
-  initTabs();
-
-  document.getElementById("DetailsLink").addEventListener("click", function(event) {
-    if (!userEmail) {
-      event.preventDefault();
-      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
-      modal.show();
-    }
-  });
-
-  document.getElementById("dietsLink").addEventListener("click", function(event) {
-    if (!userEmail) {
-      event.preventDefault();
-      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
-      modal.show();
-    }
-  });
-// Handle showing and hiding screenshot input based on installment mode
-document.getElementById("installmentMode").addEventListener("change", function () {
-  const screenshotContainer = document.getElementById("screenshotContainer");
-  if (this.value === "Online") {
-    screenshotContainer.style.display = "block";
-  } else {
-    screenshotContainer.style.display = "none";
-  }
-});
-
-// Validate room number (max 3 digits and no 1005)
-function isValidRoomNumber(roomNumber) {
-  const regex = /^[0-9]{1,3}$/;
-  return regex.test(roomNumber) && roomNumber !== "1005";
-}
-// Handle the card click to toggle the form visibility
-document.getElementById("installmentCard").addEventListener("click", function () {
-  // Toggle visibility of the form card
-  const formCard = document.getElementById("installmentForm");
-  if (formCard.style.display === "none" || formCard.style.display === "") {
-    formCard.style.display = "block"; // Show the form
-  } else {
-    formCard.style.display = "none"; // Hide the form
-  }
-});
-
-// Handle the form submission
-document.getElementById("installmentform").addEventListener("submit", async function (event) {
-  event.preventDefault();
-
-  // Get form data
-  const name = document.getElementById("name").value.trim();
-  const roomNumber = document.getElementById("roomNumber").value.trim();
-  const installmentDate = document.getElementById("installmentDate").value;
-  const installmentAmount = document.getElementById("installmentAmount").value;
-  const installmentMode = document.getElementById("installmentMode").value;
-  const screenshot = document.getElementById("screenshot").files[0];
-
-  // Validate the room number
-  if (!isValidRoomNumber(roomNumber)) {
-    alert("Invalid room number. It must be a valid number and not 1005.");
-    return;
-  }
-
-  // Validate other fields
-  if (!name || !roomNumber || !installmentDate || !installmentAmount || !installmentMode) {
-    alert("Please fill in all the fields.");
-    return;
-  }
-
-  // If mode is "Online", check if a screenshot is attached
-  if (installmentMode === "Online" && !screenshot) {
-    alert("Please attach a screenshot for online installment mode.");
-    return;
-  }
-
-  // Upload the screenshot (if online) to Google Drive or your preferred storage
-  let screenshotUrl = '';
-  if (installmentMode === "Online" && screenshot) {
-    // You would upload the file to a cloud service (Google Drive, etc.) and get the URL
-    // For this example, we'll just simulate it.
-    screenshotUrl = await uploadScreenshot(screenshot);
-  }
-
-  // Send data to Google Sheets
-  const data = {
-    name,
-    roomNumber,
-    installmentDate,
-    installmentAmount,
-    installmentMode,
-    screenshotUrl,
-    status: 'Pending', // Default status
-  };
-
-  // Send data to Google Sheets
-  try {
-    await sendToSheet(data);
-    alert("Installment information submitted successfully.");
-  } catch (error) {
-    console.error('Error while submitting data:', error);
-  }
-});
-// Initialize Google API client after gapi.js is loaded
-function initializeApiClient() {
-  gapi.load('client:auth2', initClient); // Load the client and auth2 modules for Google API
-  console.log("gapi.js loaded and initialized");
-}
-
-// Initialize Google API client
-function initClient() {
-   gapi.client.init({
-        apiKey: 'AIzaSyCzg84aqc_4Phwc142-HqDGYMv9Dy2Ctqo',  // Your API key here
-        clientId: '269306318161-s9kb988t8acebmmoa2gv1h36rtnqai74.apps.googleusercontent.com',  // Your OAuth Client ID here
-        scope: 'https://www.googleapis.com/auth/drive.file',  // Required for uploading files to Google Drive
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-      }).then(function () {
-        // Check if the user is already signed in
-        if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-          console.log("User is already signed in.");
-        } else {
-          // Sign the user in if not already signed in
-          gapi.auth2.getAuthInstance().signIn().then(function () {
-            console.log("User signed in.");
-          });
-        }
-      }).catch(function (error) {
-        console.error("Error initializing Google API client: ", error);
-      });
-    }
-
-    // This is your function to handle the upload button click event
-    function handleUpload() {
-      // Trigger file picker or select a file (simulating with a dummy file here)
-      let screenshot = new File(["dummy content"], "screenshot.jpg", { type: "image/jpeg" });
-      uploadScreenshot(screenshot);
-    }
-// Upload the screenshot to Google Drive and return the file URL
-async function uploadScreenshot(screenshot) {
-  // Create a file metadata object with the file's name and MIME type
-  const fileMetadata = {
-    'name': screenshot.name,  // The file name
-    'mimeType': screenshot.type // The MIME type of the file
-  };
-
-  // Create a media object containing the file content
-  const media = {
-    mimeType: screenshot.type,  // MIME type
-    body: screenshot            // The actual file content (the file object)
-  };
-
-  try {
-    // Use the Google Drive API to create/upload the file
-    const response = await gapi.client.drive.files.create({
-      resource: fileMetadata,   // Metadata (file name and type)
-      media: media              // The file content
-    });
-
-    // If successful, construct the file URL
-    if (response.status === 200) {
-      const fileId = response.result.id;
-      const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
-      console.log('File uploaded successfully:', fileUrl);
-      return fileUrl;  // Return the file URL
-    } else {
-      console.error('Error uploading file:', response);
-      return '';  // Return an empty string if the upload fails
-    }
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    return '';  // Return an empty string if an error occurs
-  }
-}
-// Send data to Google Sheets (Modify this function as needed for your specific Google Sheets setup)
-// Send data to Google Apps Script (which will save it in Google Sheets)
-async function sendToSheet(data) {
-  const scriptUrl = 'https://script.google.com/macros/s/AKfycbzsplg4RciIB7SDM_nY57on4Fp9grYmHLpXDq4Bo3fAmL1tAHrpuooWbmTNH_F_t6-u/exec'; // Your Google Apps Script URL
-  
-  try {
-    const response = await fetch(scriptUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/json', // Sending JSON data
-      },
-      body: JSON.stringify(data), // Convert data object to JSON format
-    });
-
-    // Check if the response is OK (HTTP status 200)
-    if (response.ok) {
-      const result = await response.json(); // Get the response from Google Apps Script
-      if (result.result === 'success') {
-        console.log("Data saved successfully.");
-      } else {
-        console.error("Error saving data:", result);
-      }
-    } else {
-      console.error("Request failed with status:", response.status);
-    }
-  } catch (error) {
-    console.error("Error sending data:", error);
-  }
-  // Reload the page after everything is done
-  setTimeout(function() {
-    location.reload(); // Reload the page
-  }, 3000); // 3 seconds delay before reload
-}
-
-</script>
-
+    <h1>Upload a File to Google Drive</h1>
+    <button id="sign-in-btn" style="display: none;" onclick="signIn()">Sign In with Google</button>
+    <button id="file-input" style="display: none;" onclick="triggerFileSelection()">Select a file to upload</button>
 </body>
 </html>
