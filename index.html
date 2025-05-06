@@ -279,7 +279,7 @@
     <a class="nav-link" data-bs-toggle="tab" href="#personnel"><i class="fas fa-user-friends"></i>Team</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#installmentform"><i class="fas fa-money-check-alt"></i>Instalments</a>
+    <a class="nav-link" id="installmentformlink" data-bs-toggle="tab" href="#installmentform"><i class="fas fa-money-check-alt"></i>Instalments</a>
   </li>
 
 </ul>
@@ -368,9 +368,7 @@
 
     if (userEmail) {
       renderTab('DetailsContent', await fetchSheet(sheetNames[0], true));
-      renderTab('dietsContent', await fetchSheet(sheetNames[1], true));
-      renderTab('installmentform', await fetchSheet(sheetNames[5], true));
-	    
+      renderTab('dietsContent', await fetchSheet(sheetNames[1], true));	    
     }
   }
 
@@ -386,6 +384,13 @@
   });
 
   document.getElementById("dietsLink").addEventListener("click", function(event) {
+    if (!userEmail) {
+      event.preventDefault();
+      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+      modal.show();
+    }
+  });
+  document.getElementById("installmentformlink").addEventListener("click", function(event) {
     if (!userEmail) {
       event.preventDefault();
       const modal = new bootstrap.Modal(document.getElementById('emailModal'));
