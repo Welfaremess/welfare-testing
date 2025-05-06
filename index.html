@@ -14,9 +14,6 @@
   <!-- Bootstrap Bundle JS (includes Bootstrap JS + Popper.js) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Google API JavaScript -->
-  <script async defer src="https://apis.google.com/js/api.js" onload="initializeApiClient()"></script>
-
   <style>
     body {
       font-family: 'Roboto', sans-serif;
@@ -394,6 +391,7 @@
       modal.show();
     }
   });
+
 // Handle showing and hiding screenshot input based on installment mode
 document.getElementById("installmentMode").addEventListener("change", function () {
   const screenshotContainer = document.getElementById("screenshotContainer");
@@ -477,77 +475,22 @@ document.getElementById("installmentform").addEventListener("submit", async func
     console.error('Error while submitting data:', error);
   }
 });
-// Initialize Google API client after gapi.js is loaded
-function initializeApiClient() {
-  gapi.load('client:auth2', initClient); // Load the client and auth2 modules for Google API
-  console.log("gapi.js loaded and initialized");
+
+
+// This is your function to handle the upload button click event
+function handleUpload() {
+// Trigger file picker or select a file (simulating with a dummy file here)
+let screenshot = new File(["dummy content"], "screenshot.jpg", { type: "image/jpeg" });
+uploadScreenshot(screenshot);
 }
-
-// Initialize Google API client
-function initClient() {
-   gapi.client.init({
-        apiKey: 'AIzaSyCzg84aqc_4Phwc142-HqDGYMv9Dy2Ctqo',  // Your API key here
-        clientId: '269306318161-s9kb988t8acebmmoa2gv1h36rtnqai74.apps.googleusercontent.com',  // Your OAuth Client ID here
-        scope: 'https://www.googleapis.com/auth/drive.file',  // Required for uploading files to Google Drive
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-      }).then(function () {
-        // Check if the user is already signed in
-        if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-          console.log("User is already signed in.");
-        } else {
-          // Sign the user in if not already signed in
-          gapi.auth2.getAuthInstance().signIn().then(function () {
-            console.log("User signed in.");
-          });
-        }
-      }).catch(function (error) {
-        console.error("Error initializing Google API client: ", error);
-      });
-    }
-
-    // This is your function to handle the upload button click event
-    function handleUpload() {
-      // Trigger file picker or select a file (simulating with a dummy file here)
-      let screenshot = new File(["dummy content"], "screenshot.jpg", { type: "image/jpeg" });
-      uploadScreenshot(screenshot);
-    }
 // Upload the screenshot to Google Drive and return the file URL
 async function uploadScreenshot(screenshot) {
   // Create a file metadata object with the file's name and MIME type
   const fileMetadata = {
     'name': screenshot.name,  // The file name
     'mimeType': screenshot.type // The MIME type of the file
-  };
+};
 
-  // Create a media object containing the file content
-  const media = {
-    mimeType: screenshot.type,  // MIME type
-    body: screenshot            // The actual file content (the file object)
-  };
-
-  try {
-    // Use the Google Drive API to create/upload the file
-    const response = await gapi.client.drive.files.create({
-      resource: fileMetadata,   // Metadata (file name and type)
-      media: media              // The file content
-    });
-
-    // If successful, construct the file URL
-    if (response.status === 200) {
-      const fileId = response.result.id;
-      const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
-      console.log('File uploaded successfully:', fileUrl);
-      return fileUrl;  // Return the file URL
-    } else {
-      console.error('Error uploading file:', response);
-      return '';  // Return an empty string if the upload fails
-    }
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    return '';  // Return an empty string if an error occurs
-  }
-}
-// Send data to Google Sheets (Modify this function as needed for your specific Google Sheets setup)
 // Send data to Google Apps Script (which will save it in Google Sheets)
 async function sendToSheet(data) {
   const scriptUrl = 'https://script.google.com/macros/s/AKfycbzsplg4RciIB7SDM_nY57on4Fp9grYmHLpXDq4Bo3fAmL1tAHrpuooWbmTNH_F_t6-u/exec'; // Your Google Apps Script URL
