@@ -485,10 +485,14 @@ async function uploadScreenshot(screenshot) {
         reader.onloadend = function() {
             // Get the Base64 string from the reader result
             const base64String = reader.result.split(',')[1]; // Remove the data URI prefix
+	    // Construct the file name in the desired format
+            const submitting = "submitting_at"; // You can replace this with the actual submitting value if needed
+            const datetime = new Date().toISOString(); // Get the current datetime in ISO format
+            const fileName = `${name}_${amount}_${date}_actual_${submitting}_${datetime}`;
 
             // Prepare the payload to send (file name, Base64 string, and file type)
             const payload = {
-                fileName: screenshot.name,
+                fileName: fileName,
                 fileData: base64String,
                 fileType: screenshot.type
             };
