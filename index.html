@@ -55,12 +55,17 @@
       border-top: 1px solid #ddd;
       justify-content: space-around;
       z-index: 999;
+      overflow-x: auto; /* Make it scrollable horizontally */
+      white-space: nowrap; /* Prevent wrapping of nav items */
+      padding: 0.5rem 0; /* Optional: Adjust vertical padding for better appearance */
+}
     }
 
     .nav-tabs .nav-link {
       text-align: center;
       font-size: 0.8rem;
-      padding: 0.5rem 0;
+      padding: 0.5rem 1rem;
+      display: inline block;
     }
 
     .nav-tabs .nav-link i {
@@ -68,6 +73,18 @@
       font-size: 1.5rem;
       margin-bottom: 0.2rem;
     }
+	.nav-tabs::-webkit-scrollbar {
+	  height: 8px; /* Adjust height of scrollbar */
+	}
+	
+	.nav-tabs::-webkit-scrollbar-thumb {
+	  background-color: rgba(0, 0, 0, 0.2); /* Optional: Style the scrollbar thumb */
+	  border-radius: 10px;
+	}
+	
+	.nav-tabs::-webkit-scrollbar-track {
+	  background-color: rgba(0, 0, 0, 0.1); /* Optional: Style the scrollbar track */
+	}
 
     .tab-content {
       padding: 1rem;
