@@ -25,7 +25,6 @@
 
         fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
           method: 'POST',
-          mode: 'no-cors',
           body: formData
         })
         .then(response => response.text())
