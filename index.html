@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload</title>
+    <title>File Upload-111</title>
 </head>
 <body>
-    <h2>Upload File</h2>
+    <h2>Upload File-111</h2>
     
     <!-- File upload form -->
     <form id="fileUploadForm">
@@ -25,6 +25,8 @@
             if (file) {
                 var formData = new FormData(); // Create a FormData object
                 formData.append('file', file); // Append the file to the formData object
+
+                console.log("File data being sent: ", file);
 
                 // Send the file to Google Apps Script Web App
                 fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
