@@ -279,7 +279,7 @@
     <a class="nav-link" data-bs-toggle="tab" href="#personnel"><i class="fas fa-user-friends"></i>Team</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="installmentformlink" data-bs-toggle="tab" href="#installmentform"><i class="fas fa-money-check-alt"></i>Instalments</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#installmentform"><i class="fas fa-money-check-alt"></i>Instalments</a>
   </li>
 
 </ul>
@@ -390,7 +390,7 @@
       modal.show();
     }
   });
-  document.getElementById("installmentformlink").addEventListener("click", function(event) {
+  document.getElementById("installmentCard").addEventListener("click", function(event) {
     if (!userEmail) {
       event.preventDefault();
       const modal = new bootstrap.Modal(document.getElementById('emailModal'));
