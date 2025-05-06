@@ -487,8 +487,12 @@ async function uploadScreenshot(screenshot) {
             const base64String = reader.result.split(',')[1]; // Remove the data URI prefix
 	    // Construct the file name in the desired format
             const submitting = "submitting_at"; // You can replace this with the actual submitting value if needed
+	    const name = document.getElementById("name").value.trim();
+	    const roomNumber = document.getElementById("roomNumber").value.trim();
+	    const installmentDate = document.getElementById("installmentDate").value;
+	    const installmentAmount = document.getElementById("installmentAmount").value;
             const datetime = new Date().toISOString(); // Get the current datetime in ISO format
-            const fileName = `${name}_${installmentAmount}_${installmentDate}_actual_${submitting}_${datetime}`;
+            const fileName = `${name}_${roomNumber}_${installmentAmount}_${installmentDate}_actual_${submitting}_${datetime}`;
 
             // Prepare the payload to send (file name, Base64 string, and file type)
             const payload = {
