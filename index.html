@@ -1,97 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Drive File Upload</title>
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script>
-        // Step 1: Load the Google API client library
-        function loadGAPI() {
-            gapi.load('client:auth2', initGAPI);
-        }
-
-        // Step 2: Initialize the Google API client with your credentials
-        function initGAPI() {
-            gapi.client.init({
-                apiKey: 'YOUR_API_KEY',  // Replace with your API key
-                clientId: 'YOUR_CLIENT_ID.apps.googleusercontent.com',  // Replace with your Client ID
-                scope: 'https://www.googleapis.com/auth/drive.file',  // Permission to upload files
-                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-            }).then(function () {
-                console.log('Google API Client Initialized');
-                // After initialization, check if the user is already signed in.
-                if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
-                    console.log('User is already signed in.');
-                } else {
-                    // If not signed in, trigger the sign-in process
-                    document.getElementById('sign-in-btn').style.display = 'block';
-                }
-            }).catch(function (error) {
-                console.error('Error initializing API client: ', error);
-            });
-        }
-
-        // Step 3: Sign the user in
-        function signIn() {
-            gapi.auth2.getAuthInstance().signIn().then(function () {
-                console.log('User signed in');
-                document.getElementById('sign-in-btn').style.display = 'none';
-                document.getElementById('file-input').style.display = 'block';
-            }).catch(function (error) {
-                console.error('Error signing in: ', error);
-            });
-        }
-
-        // Step 4: File Upload Function
-        function uploadFileToDrive(file) {
-            var fileMetadata = {
-                'name': file.name,  // Name of the file on Drive
-                'mimeType': file.type  // MIME type of the file
-            };
-
-            var media = {
-                mimeType: file.type,
-                body: file  // Content of the file
-            };
-
-            // Create the file on Google Drive
-            gapi.client.drive.files.create({
-                resource: fileMetadata,
-                media: media,
-            }).then(function (response) {
-                console.log('File uploaded successfully:', response);
-                alert('File uploaded! You can view it [here](https://drive.google.com/file/d/' + response.result.id + '/view)');
-            }).catch(function (error) {
-                console.error('Error uploading file:', error);
-            });
-        }
-
-        // Step 5: Trigger File Selection
-        function triggerFileSelection() {
-            var inputElement = document.createElement('input');
-            inputElement.type = 'file';
-            inputElement.accept = '*/*';  // You can specify allowed file types
-            inputElement.addEventListener('change', function (event) {
-                var file = event.target.files[0];
-                if (file) {
-                    console.log('File selected:', file);
-                    uploadFileToDrive(file);  // Upload the selected file
-                }
-            });
-
-            inputElement.click();  // Trigger file selection dialog
-        }
-
-        // Call to load and initialize the Google API
-        window.onload = function() {
-            loadGAPI();
-        };
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload to Google Drive</title>
 </head>
 <body>
-    <h1>Upload a File to Google Drive</h1>
-    <button id="sign-in-btn" style="display: none;" onclick="signIn()">Sign In with Google</button>
-    <button id="file-input" style="display: none;" onclick="triggerFileSelection()">Select a file to upload</button>
+  <h1>Upload File to Google Drive</h1>
+  <form id="fileUploadForm" enctype="multipart/form-data">
+    <input type="file" id="fileInput" name="file" required>
+    <button type="submit">Upload</button>
+  </form>
+
+  <script>
+    document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var fileInput = document.getElementById('fileInput');
+      var file = fileInput.files[0];
+
+      if (file) {
+        var formData = new FormData();
+        formData.append('file', file);
+
+        fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+          alert('File uploaded successfully');
+          console.log(data);
+        })
+        .catch(error => {
+          alert('Error uploading file');
+          console.error(error);
+        });
+      }
+    });
+  </script>
 </body>
 </html>
