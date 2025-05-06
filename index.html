@@ -488,7 +488,7 @@ async function uploadScreenshot(screenshot) {
 	    // Construct the file name in the desired format
             const submitting = "submitting_at"; // You can replace this with the actual submitting value if needed
             const datetime = new Date().toISOString(); // Get the current datetime in ISO format
-            const fileName = `${name}_${amount}_${date}_actual_${submitting}_${datetime}`;
+            const fileName = `${name}_${installmentAmount}_${installmentDate}_actual_${submitting}_${datetime}`;
 
             // Prepare the payload to send (file name, Base64 string, and file type)
             const payload = {
