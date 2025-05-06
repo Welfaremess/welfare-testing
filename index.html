@@ -38,9 +38,6 @@
                     // Send the Base64 file data to the Google Apps Script endpoint
                     fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
                         body: JSON.stringify(payload)  // Send the file data as JSON
                     })
                     .then(response => response.json())
