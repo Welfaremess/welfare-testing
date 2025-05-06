@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload-107</title>
+    <title>File Upload (Base64)</title>
 </head>
 <body>
-    <h2>Upload File-107</h2>
+    <h2>Upload File as Base64</h2>
     <form id="fileUploadForm" enctype="multipart/form-data">
         <input type="file" id="fileInput" name="file" />
         <button type="submit">Upload File</button>
     </form>
 
     <script>
+        // Event listener for form submission
         document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
             event.preventDefault();  // Prevent the default form submission
 
@@ -20,22 +21,41 @@
             var file = fileInput.files[0];  // Get the first file
 
             if (file) {
-                var formData = new FormData();
-                formData.append('file', file); // Append the file to FormData
+                // Create a FileReader to convert the file to Base64
+                var reader = new FileReader();
 
-                fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
-                    method: 'POST',
-                    body: formData  // Send the form data in the body (which includes the file)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Server response:', data);
-                    alert('File uploaded successfully');
-                })
-                .catch(error => {
-                    alert('Error uploading file');
-                    console.error('Error:', error);
-                });
+                reader.onload = function(e) {
+                    // Get the Base64 encoded string from the FileReader
+                    var base64String = e.target.result.split(',')[1]; // Extract the Base64 part
+
+                    // Prepare the payload to send (file name, Base64 string, and file type)
+                    var payload = {
+                        fileName: file.name,
+                        fileData: base64String,
+                        fileType: file.type
+                    };
+
+                    // Send the Base64 file data to the Google Apps Script endpoint
+                    fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)  // Send the file data as JSON
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Server response:', data);
+                        alert('File uploaded successfully');
+                    })
+                    .catch(error => {
+                        alert('Error uploading file');
+                        console.error('Error:', error);
+                    });
+                };
+
+                // Convert the file to Base64
+                reader.readAsDataURL(file);
             } else {
                 alert('Please select a file to upload');
             }
