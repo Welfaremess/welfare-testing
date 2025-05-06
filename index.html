@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload-111</title>
+    <title>File Upload-102</title>
 </head>
 <body>
-    <h2>Upload File-111</h2>
+    <h2>Upload File-102</h2>
     
-    <!-- File upload form -->
-    <form id="fileUploadForm">
+    <form id="fileUploadForm" enctype="multipart/form-data">
         <input type="file" id="fileInput" name="file" />
         <button type="submit">Upload File</button>
     </form>
@@ -18,29 +17,32 @@
         document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent the default form submission
 
-            // Get the file input element
             var fileInput = document.getElementById('fileInput');
-            var file = fileInput.files[0]; // Get the first file (if any)
+            var file = fileInput.files[0]; // Get the first file
 
             if (file) {
-                var formData = new FormData(); // Create a FormData object
-                formData.append('file', file); // Append the file to the formData object
+                var formData = new FormData();
+                formData.append('file', file); // Add file to the form data
 
-                console.log("File data being sent: ", file);
+                // Optional: log form data to ensure it's added
+                console.log("Form data to be sent: ", formData);
 
-                // Send the file to Google Apps Script Web App
+                // Send the form data (with file) to the Google Apps Script Web App
                 fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
                     method: 'POST',
-                    body: formData // Send the formData (which contains the file) in the request body
+                    body: formData,  // Send the form data in the body
+                    headers: {
+                        'Accept': 'application/json',  // Make sure we get JSON back
+                    }
                 })
-                .then(response => response.json()) // Parse the JSON response
+                .then(response => response.json()) // Parse the response as JSON
                 .then(data => {
+                    console.log('Server response:', data);
                     alert('File uploaded successfully');
-                    console.log('Response from server:', data); // Log server response
                 })
                 .catch(error => {
                     alert('Error uploading file');
-                    console.error('Error:', error); // Log the error if upload fails
+                    console.error('Error:', error);
                 });
             } else {
                 alert('Please select a file to upload');
