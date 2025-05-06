@@ -390,7 +390,17 @@
       modal.show();
     }
   });
-  
+	
+  document.getElementById("installmentform").addEventListener("change", function () {
+  const screenshotContainer = document.getElementById("screenshotContainer");
+  // Check if userEmail is present
+  if (userEmail !== '') {
+    screenshotContainer.style.display = "block";  // Show screenshot container if userEmail exists
+  } else {
+    screenshotContainer.style.display = "none";   // Hide screenshot container if no email
+  }
+});
+
 // Handle showing and hiding screenshot input based on installment mode
 document.getElementById("installmentMode").addEventListener("change", function () {
   const screenshotContainer = document.getElementById("screenshotContainer");
@@ -490,7 +500,6 @@ async function uploadScreenshot(screenshot) {
             const base64String = reader.result.split(',')[1]; // Remove the data URI prefix
 	    // Construct the file name in the desired format
             const submitting = "submitting_at"; // You can replace this with the actual submitting value if needed
-            const email = localStorage.getItem('welfareEmail');
 	    const name = document.getElementById("name").value.trim();
 	    const roomNumber = document.getElementById("roomNumber").value.trim();
 	    const installmentDate = document.getElementById("installmentDate").value;
