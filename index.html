@@ -497,9 +497,6 @@ async function uploadScreenshot(screenshot) {
             fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
                 method: 'POST',
                 body: JSON.stringify(payload),  // Send the file data as JSON
-                headers: {
-                    'Content-Type': 'application/json'
-                }
             })
             .then(response => response.json())
             .then(data => {
