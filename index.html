@@ -54,29 +54,35 @@
       background-color: white;
       border-top: 1px solid #ddd;
       justify-content: space-around;
-      z-index: 999;
       display: flex;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
       overflow-x: auto; /* Make it scrollable horizontally */
       white-space: nowrap; /* Prevent wrapping of nav items */
-      padding: 0 10px; /* Optional: Adjust vertical padding for better appearance */
+      z-index: 999;
+
     }
     .nav-tabs .nav-item {
       flex-shrink: 0; /* Prevent the items from shrinking */
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      margin-right: 15px; 
     }
     .nav-tabs .nav-link {
-      text-align: center;
-      font-size: 0.8rem;
-      padding: 0.5rem 1rem;
-      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem;
+      justify-content: center;
     }
 
     .nav-tabs .nav-link i {
-      display: block;
       font-size: 1.5rem;
       margin-bottom: 0.2rem;
     }
 	.nav-tabs::-webkit-scrollbar {
-	  height: 8px; /* Adjust height of scrollbar */
+	  height: 2px; /* Adjust height of scrollbar */
 	}
 	
 	.nav-tabs::-webkit-scrollbar-thumb {
