@@ -7,7 +7,7 @@
 </head>
 <body>
     <h2>Upload File-106</h2>
-    <form id="fileUploadForm">
+    <form id="fileUploadForm" enctype="multipart/form-data">
         <input type="file" id="fileInput" name="file" />
         <button type="submit">Upload File</button>
     </form>
@@ -20,38 +20,22 @@
             var file = fileInput.files[0];  // Get the first file
 
             if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    // Get the base64 encoded string from the FileReader
-                    var base64String = e.target.result.split(',')[1]; // Extract base64 part
+                var formData = new FormData();
+                formData.append('file', file); // Append the file to FormData
 
-                    // Prepare the payload to send
-                    var payload = {
-                        fileName: file.name,
-                        fileData: base64String,
-                        fileType: file.type
-                    };
-
-                    // Send the file data to the Google Apps Script
-                    fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)  // Send the file as JSON
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Server response:', data);
-                        alert('File uploaded successfully');
-                    })
-                    .catch(error => {
-                        alert('Error uploading file');
-                        console.error('Error:', error);
-                    });
-                };
-
-                reader.readAsDataURL(file);  // Convert the file to a base64 string
+                fetch('https://script.google.com/macros/s/AKfycbyc1hpYYiiNladWBme6OTahwvuxX0J6-SV32dNPfiU3-OQQNjhqn3u9hjkJMpn9Prkh/exec', {
+                    method: 'POST',
+                    body: formData  // Send the form data in the body (which includes the file)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Server response:', data);
+                    alert('File uploaded successfully');
+                })
+                .catch(error => {
+                    alert('Error uploading file');
+                    console.error('Error:', error);
+                });
             } else {
                 alert('Please select a file to upload');
             }
