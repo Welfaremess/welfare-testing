@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welfare Mess</title>
-  
+
   <!-- Google Fonts (Roboto) -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-  
+
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
@@ -84,12 +84,12 @@
 	.nav-tabs::-webkit-scrollbar {
 	  height: 8px; /* Adjust height of scrollbar */
 	}
-	
+
 	.nav-tabs::-webkit-scrollbar-thumb {
 	  background-color: rgba(0, 0, 0, 0.2); /* Optional: Style the scrollbar thumb */
 	  border-radius: 10px;
 	}
-	
+
 	.nav-tabs::-webkit-scrollbar-track {
 	  background-color: rgba(0, 0, 0, 0.1); /* Optional: Style the scrollbar track */
 	}
@@ -118,10 +118,20 @@
       color: #555;
       text-align: center;
     }
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* Center horizontally */
+  align-items: center;      /* Center vertically */
+}
+
 
     .card {
       margin-bottom: 1rem;
       border-radius: 1rem;
+      max-width: 400px;
+      justify-content: center;
+      width: 100%;  /* Ensure card is responsive up to the max-width */
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
       transition: transform 0.2s;
     }
@@ -440,7 +450,7 @@
          <button class="btn btn-secondary btn-sm" id="secondBackButton">
            <i class="fas fa-arrow-left"></i> Back
          </button>
-        <h4>Update Additional Installment Information</h4>
+        <h4>View Instalment Information</h4>
       </div>
       <div class="card-body" id="installmentsContent">
       </div>
@@ -450,26 +460,27 @@
 
 <ul class="nav nav-tabs nav-fill" id="tabs">
   <li class="nav-item">
-    <a class="nav-link active" id="setemailTab" data-bs-toggle="tab" href="#setEmail"><i class="fas fa-envelope"></i>Email</a>
+    <a class="nav-link active" data-bs-toggle="tab" href="#setEmail"><i class="fas fa-envelope"></i>Email</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="DetailsLink" data-bs-toggle="tab" href="#Details"><i class="fas fa-user-astronaut"></i>Details</a>
+    <a class="nav-link" id="DetailsLink" data-bs-toggle="tab" href="#Details"><i class="fas fa-money-bill-wave"></i>Details</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" id="dietsLink" data-bs-toggle="tab" href="#diets"><i class="fas fa-drumstick-bite"></i>Diets</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="instalmentstab" data-bs-toggle="tab" href="#installmentform"><i class="fa-solid fa-indian-rupee-sign"></i>Instalments</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#installmentform"><i class="fas fa-solid fa-indian-rupee-sign"></i>Instalments</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="announcementsTab" data-bs-toggle="tab" href="#announcements"><i class="fas fa-bullhorn"></i>Announcements</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#announcements"><i class="fas fa-bullhorn"></i>Announcements</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="dietMenuTab" data-bs-toggle="tab" href="#dietMenu"><i class="fas fa-utensils"></i>Diet Menu</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#dietMenu"><i class="fas fa-utensils"></i>Diet Menu</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="personnelTab" data-bs-toggle="tab" href="#personnel"><i class="fas fa-user-friends"></i>Team</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#personnel"><i class="fas fa-user-friends"></i>Team</a>
   </li>
+
 
 </ul>
 
@@ -535,7 +546,7 @@
     return filtered.map(row => Object.fromEntries(headers.map((key, i) => [key, row[i] || '']))); 
   }
 
-  function renderCard(item) {
+function renderCard(item) {
   return `<div class="card p-3 shadow-lg rounded-lg" style="max-width: 400px; margin: 10px auto; background-color: #f9f9f9; border-radius: 10px; overflow: hidden;">
     ${Object.entries(item).map(([key, val]) => {
       // Format multiline text (replace newlines with <br>)
@@ -553,6 +564,23 @@
         }
         // Return the status with the background color applied
         return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><span style="${statusColor}">${formattedVal}</span></p>`;
+      }
+
+      // Check if the key is 'Attachment' and if it contains a URL
+      if (key === 'Attachment' && val) {
+        // Check if val looks like a valid URL
+        const isValidUrl = (str) => {
+          const pattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+          return pattern.test(str);
+        };
+
+        if (isValidUrl(val)) {
+          // If the URL is valid, make it a clickable link
+          return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><a href="${val}" target="_blank" style="color: #007bff; text-decoration: none;">${val}</a></p>`;
+        } else {
+          // If it's not a valid URL, just display the text
+          return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br>${formattedVal}</p>`;
+        }
       }
 
       // For other fields, return with a slightly modernized look
@@ -592,101 +620,34 @@
       renderTab('DetailsContent', await fetchSheet(sheetNames[0], true));
       renderTab('dietsContent', await fetchSheet(sheetNames[1], true));	    
     }
-    // Activate the correct tab based on URL fragment
-    handleFragmentNavigation();  // Check and activate the tab based on the URL fragment
   }
 
   displaySavedEmail();
   initTabs();
 
   document.getElementById("DetailsLink").addEventListener("click", function(event) {
-    event.preventDefault();
     if (!userEmail) {
       event.preventDefault();
       const modal = new bootstrap.Modal(document.getElementById('emailModal'));
       modal.show();
-    } else {
-    // If email is present, update the URL fragment
-      const tab='Details';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
     }
   });
-  document.getElementById("instalmentstab").addEventListener("click", function(event) {
-    event.preventDefault();
-    if (!userEmail) {
-      event.preventDefault();
-      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
-      modal.show();
-    } else {
-    // If email is present, update the URL fragment
-      const tab='installmentform';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
-    }
-  });
-
   document.getElementById("dietsLink").addEventListener("click", function(event) {
-    event.preventDefault();
     if (!userEmail) {
       event.preventDefault();
       const modal = new bootstrap.Modal(document.getElementById('emailModal'));
       modal.show();
-    } else {
-    // If email is present, update the URL fragment
-      const tab='Diets';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
-
     }
   });
-  document.getElementById("personnelTab").addEventListener("click", function(event) {
-    event.preventDefault();
-    // If email is present, update the URL fragment
-      const tab='personnel';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
-
-    
+  document.getElementById("installmentform").addEventListener("click", function(event) {
+    if (!userEmail) {
+      event.preventDefault();
+      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+      modal.show();
+      // Change the styling of the element (e.g., make an element with ID 'someElement' visible)
+      document.getElementById('installmentform').style.display = 'block';
+    }
   });
-  document.getElementById("announcementsTab").addEventListener("click", function(event) {
-    event.preventDefault();
-    // If email is present, update the URL fragment
-      const tab='announcements';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
-
-    
-  });
-  document.getElementById("dietMenuTab").addEventListener("click", function(event) {
-    event.preventDefault();
-    // If email is present, update the URL fragment
-      const tab='dietMenu';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
-
-    
-  });
-  document.getElementById("setemailTab").addEventListener("click", function(event) {
-    event.preventDefault();
-    // If email is present, update the URL fragment
-      const tab='setemail';
-      window.location.hash = `#${tab}`;  // Update URL fragment to "#Details"
-      setActiveTab(tab);  // Activate the "Details" tab
-
-    
-  });
-// Existing: Show modal if the user is not logged in when clicking on the installment form
-document.getElementById("installmentform").addEventListener("click", function(event) {
-  event.preventDefault();
-  if (!userEmail) {
-    event.preventDefault();
-    const modal = new bootstrap.Modal(document.getElementById('emailModal'));
-    modal.show();
-    // Change the styling of the element (e.g., make an element with ID 'someElement' visible)
-    document.getElementById('installmentform').style.display = 'block';
-  }
-});
 
 // Handle showing and hiding screenshot input based on installment mode
 document.getElementById("installmentMode").addEventListener("change", function () {
@@ -703,7 +664,6 @@ function isValidRoomNumber(roomNumber) {
   const regex = /^[0-9]{1,3}$/;
   return regex.test(roomNumber) && roomNumber !== "1005";
 }
-
 // Handle the first card click to toggle the first form visibility
 document.getElementById("installmentCard").addEventListener("click", function () {
   // Hide both cards and show only the first form
@@ -742,6 +702,15 @@ document.getElementById("secondBackButton").addEventListener("click", function (
   document.getElementById("secondInstallmentForm").style.display = "none";
 });
 
+// Handle the back button to hide the form and show the card again
+document.getElementById("backButton").addEventListener("click", function () {
+  const formCard = document.getElementById("installmentForm");
+  const installmentCard = document.getElementById("installmentCard");
+
+  // Show the initial card and hide the form
+  formCard.style.display = "none";
+  installmentCard.style.display = "block";
+});
 
 // Handle the form submission
 document.getElementById("installmentform").addEventListener("submit", async function (event) {
@@ -864,7 +833,7 @@ async function uploadScreenshot(screenshot) {
 // Send data to Google Apps Script (which will save it in Google Sheets)
 async function sendToSheet(data) {
   const scriptUrl = 'https://script.google.com/macros/s/AKfycbzsplg4RciIB7SDM_nY57on4Fp9grYmHLpXDq4Bo3fAmL1tAHrpuooWbmTNH_F_t6-u/exec'; // Your Google Apps Script URL
-  
+
   try {
     const response = await fetch(scriptUrl, {
       method: 'POST',
@@ -893,26 +862,6 @@ async function sendToSheet(data) {
   setTimeout(function() {
     location.reload(); // Reload the page
   }, 3000); // 3 seconds delay before reload
-}
-function setActiveTab(tab) {
-  // Clear the active class from all tabs
-  document.querySelectorAll('.tab').forEach(tabElement => {
-    tabElement.classList.remove('active');
-  });
-
-  // Show the tab content for the selected tab
-  document.getElementById(`${tab}Content`).style.display = 'block';
-  
-  // Add the active class to the clicked tab
-  document.getElementById(`${tab}Link`).classList.add('active');
-}
-
-// Check for the fragment in the URL on page load
-function handleFragmentNavigation() {
-  const fragment = window.location.hash.substring(1); // Get the fragment part of the URL
-  if (sheetNames.includes(fragment)) {
-    setActiveTab(fragment);  // Activate the tab based on the fragment
-  }
 }
 
 </script>
