@@ -597,12 +597,6 @@ function renderCard(item) {
   }
 
   // Fetch and render installments for the user
-  function renderInstallmentData(data) {
-    const installmentContainer = document.getElementById('installmentsContent');
-    installmentContainer.innerHTML = data.length ? data.map(renderCard).join('') : '<p>No installments found.</p>';
-  }
-
-  // Fetch and render installments for the user
   async function fetchAndRenderInstallments() {
     if (userEmail) {
       const installmentsData = await fetchSheet(sheetNames[5], true); // Fetch the "Instalments" data and filter by email
