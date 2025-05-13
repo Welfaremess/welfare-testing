@@ -598,14 +598,28 @@ function renderCard(item) {
 
   // Fetch and render installments for the user
   async function fetchAndRenderInstallments() {
-    if (userEmail) {
-      const installmentsData = await fetchSheet(sheetNames[5], true); // Fetch the "Instalments" data and filter by email
-      renderInstallmentData(installmentsData);
-    } else {
-      const modal = new bootstrap.Modal(document.getElementById('emailModal'));
-      modal.show();
-    }
-  }
+	  if (userEmail) {
+	    const installmentsData = await fetchSheet(sheetNames[5], true); // sheetNames[5] = "Instalments"
+	
+	    // Adjust rendering to new column order
+	    const mappedInstallments = installmentsData.map(row => ({
+	      primaryKey: row[0],
+	      email: row[1],
+	      name: row[2],
+	      roomNumber: row[3],
+	      instalmentDate: row[4],
+	      instalmentAmount: row[5],
+	      instalmentMode: row[6],
+	      attachment: row[7],
+	      status: row[8]
+	    }));
+	
+	    renderInstallmentData(mappedInstallments); // Pass the correctly mapped data
+	  } else {
+	    const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+	    modal.show();
+	  }
+	}
 
   function renderTab(tabId, data) {
     document.getElementById(tabId).innerHTML = data.length ? data.map(renderCard).join('') : '<p>No data found.</p>';
