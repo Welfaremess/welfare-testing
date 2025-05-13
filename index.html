@@ -280,6 +280,11 @@
       display: block;
       opacity: 1;
     }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
     @media (max-width: 576px) {
       .card p {
         font-size: 0.9rem;
@@ -291,6 +296,9 @@
 
 </head>
 <body>
+<div id="loadingSpinner" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+  <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 2s linear infinite;"></div>
+</div>
 
 <div class="top-header">
   Welfare Mess
@@ -316,34 +324,16 @@
   </div>
 </div>
 
-<!-- Error Modal for invalid email -->
-<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+<!-- Modal for Success or Error Message -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="errorModalLabel">Invalid Email!</h5>
+        <h5 class="modal-title" id="statusModalLabel">Message</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        Please enter a valid email address.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Success Modal to notify that email has been saved -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="successModalLabel">Email Saved!</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Your email has been successfully saved.
+      <div class="modal-body" id="modalMessageBody">
+        <!-- Dynamic message content will go here -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
@@ -499,11 +489,11 @@
   function saveEmailTab() {
     userEmail = document.getElementById('emailInputTab').value;
     if (!isValidEmail(userEmail)) {
-      showErrorDialog();
+     showModal("Error", "Your Email has not been saved successfully");
       return;
     }
     localStorage.setItem('welfareEmail', userEmail);
-    showSuccessDialog();
+    showModal("Success", "Your Email has been saved successfully");
     displaySavedEmail();
     setTimeout(() => location.reload(), 2000); // Delay reload for 2 seconds to allow modal visibility
   }
@@ -511,11 +501,11 @@
   function saveEmail() {
     userEmail = document.getElementById('emailInput').value;
     if (!isValidEmail(userEmail)) {
-      showErrorDialog();
+     showModal("Error", "Your Email has not been saved successfully");
       return;
     }
     localStorage.setItem('welfareEmail', userEmail);
-    showSuccessDialog();
+    showModal("Success", "Your Email has been saved successfully");
     displaySavedEmail();
     setTimeout(() => location.reload(), 2000); // Delay reload for 2 seconds to allow modal visibility
   }
@@ -525,32 +515,40 @@
     return regex.test(email);
   }
 
-  function showErrorDialog() {
-    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-    errorModal.show();
-  }
 
-  function showSuccessDialog() {
-    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-    successModal.show();
-  }
+async function fetchSheet(sheet, filterByValue = false, filterColumnIndex = 0) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheet}?alt=json&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!data.values || data.values.length < 2) return [];
+  const headers = data.values[0];
+  const rows = data.values.slice(1);
+  const filtered = filterByValue
+    ? rows.filter(row => (row[filterColumnIndex] || '').toLowerCase() === userEmail.toLowerCase())
+    : rows;
+  return filtered.map(row =>
+    Object.fromEntries(headers.map((key, i) => [key, row[i] || '']))
+  );
+}
 
-  async function fetchSheet(sheet, filterByEmail = false) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheet}?alt=json&key=${apiKey}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!data.values) return [];
-    const headers = data.values[0];
-    const rows = data.values.slice(1);
-    const filtered = filterByEmail ? rows.filter(row => row[0]?.toLowerCase() === userEmail.toLowerCase()) : rows;
-    return filtered.map(row => Object.fromEntries(headers.map((key, i) => [key, row[i] || '']))); 
-  }
 
 function renderCard(item) {
   return `<div class="card p-3 shadow-lg rounded-lg" style="max-width: 400px; margin: 10px auto; background-color: #f9f9f9; border-radius: 10px; overflow: hidden;">
     ${Object.entries(item).map(([key, val]) => {
       // Format multiline text (replace newlines with <br>)
       const formattedVal = val ? val.replace(/\n/g, '<br>') : '';
+
+      // Check if the key is 'Diet_Off_Status' and apply a background color to it
+      if (key === 'Diet_Off_Status') {
+        let statusColor = '';
+        if (val === 'Diet_Off') {
+          statusColor = 'background-color: #f44336; color: white; padding: 3px 10px; border-radius: 5px;';
+        } else if (val === 'Diet_ON') {
+          statusColor = 'background-color: #4CAF50; color: white; padding: 3px 10px; border-radius: 5px;';
+        }
+        // Return the Diet_Off_Status field with the background color applied
+        return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><span style="${statusColor}">${formattedVal}</span></p>`;
+      }
 
       // Check if the key is 'Status' and apply a background color to the status text
       if (key === 'Status') {
@@ -599,7 +597,7 @@ function renderCard(item) {
   // Fetch and render installments for the user
   async function fetchAndRenderInstallments() {
     if (userEmail) {
-      const installmentsData = await fetchSheet(sheetNames[5], true); // Fetch the "Instalments" data and filter by email
+      const installmentsData = await fetchSheet(sheetNames[5], true, 1); // Fetch the "Instalments" data and filter by email
       renderInstallmentData(installmentsData);
     } else {
       const modal = new bootstrap.Modal(document.getElementById('emailModal'));
@@ -711,10 +709,15 @@ document.getElementById("backButton").addEventListener("click", function () {
   formCard.style.display = "none";
   installmentCard.style.display = "block";
 });
+window.onload = function() {
+  document.getElementById("loadingSpinner").style.display = 'none';
+};
 
-// Handle the form submission
+// Handle form submission
 document.getElementById("installmentform").addEventListener("submit", async function (event) {
   event.preventDefault();
+  document.getElementById("loadingSpinner").style.display = 'flex';
+
 
   // Get form data
   const email = localStorage.getItem('welfareEmail');
@@ -766,12 +769,26 @@ document.getElementById("installmentform").addEventListener("submit", async func
   // Send data to Google Sheets
   try {
     await sendToSheet(data);
-    alert("Installment information submitted successfully.");
+    showModal("Success", "Installment information submitted successfully.");
   } catch (error) {
     console.error('Error while submitting data:', error);
+    showModal("Error", "An error occurred. Please try again.");
+  } finally {
+    // Hide the spinner after the process is finished (success or failure)
+    document.getElementById("loadingSpinner").style.display = 'none';
   }
 });
 
+// Show the modal with a dynamic title and message
+function showModal(title, message) {
+  // Set the dynamic title and message in the modal
+  document.getElementById("statusModalLabel").textContent = title;
+  document.getElementById("modalMessageBody").textContent = message;
+
+  // Show the modal using Bootstrap's modal method
+  var modal = new bootstrap.Modal(document.getElementById('statusModal'));
+  modal.show();
+}
 // Upload the screenshot to Google Drive and return the file URL
 // Upload the screenshot, convert to Base64 and send payload to Google Apps Script
 async function uploadScreenshot(screenshot) {
