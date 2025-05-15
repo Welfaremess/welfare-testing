@@ -46,6 +46,22 @@
       font-size: 1.25rem;
       cursor: pointer;
     }
+     .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 10px;
+        font-size: 16px;
+        background-color: #ff4436;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    .close-btn:hover {
+        background-color: #e53935;
+    }
 
     .nav-tabs {
       position: fixed;
@@ -394,11 +410,11 @@
         <form id="installmentform">
           <div class="mb-3">
             <label for="name" class="form-label">Name</label>
-            <input type="text" class="form-control" id="name" required />
+            <input type="text" class="form-control" id="name" readonly required />
           </div>
           <div class="mb-3">
             <label for="roomNumber" class="form-label">Room Number</label>
-            <input type="text" class="form-control" id="roomNumber" maxlength="3" required />
+            <input type="text" class="form-control" id="roomNumber" maxlength="3" readonly required />
             <small id="roomNumberHelp" class="form-text text-muted">Enter a valid room number (max 3 digits).</small>
           </div>
           <div class="mb-3">
@@ -446,6 +462,13 @@
       </div>
     </div>
   </div>
+</div>
+<!-- Modal Structure -->
+<div id="imageModal" class="modal">
+    <div class="modal-content">
+        <img id="modalImage" src="" alt="Image to view">
+        <button class="close-btn" onclick="closeImageModal()">×</button>
+    </div>
 </div>
 
 <ul class="nav nav-tabs nav-fill" id="tabs">
@@ -530,6 +553,22 @@ async function fetchSheet(sheet, filterByValue = false, filterColumnIndex = 0) {
     Object.fromEntries(headers.map((key, i) => [key, row[i] || '']))
   );
 }
+async function fillUserDetails() {
+  const sheetName = 'Basic Details'; // Replace with the actual sheet name
+  const userData = await fetchSheet(sheetName, true, 0); // Assuming email is in column 0
+
+  if (userData.length === 0) {
+    showModal('Error','User data not found in the sheet.');
+    return;
+  }
+
+  const user = userData[0]; // Only the first match (should be unique by email)
+  console.log(user)
+  
+  // Fill in the form fields
+  document.getElementById('name').value = user["Name"] || '';
+  document.getElementById('roomNumber').value = user["Room"] || '';
+}
 
 
 function renderCard(item) {
@@ -546,7 +585,6 @@ function renderCard(item) {
         } else if (val === 'Diet_ON') {
           statusColor = 'background-color: #4CAF50; color: white; padding: 3px 10px; border-radius: 5px;';
         }
-        // Return the Diet_Off_Status field with the background color applied
         return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><span style="${statusColor}">${formattedVal}</span></p>`;
       }
 
@@ -560,7 +598,6 @@ function renderCard(item) {
         } else if (val.toLowerCase() === 'rejected') {
           statusColor = 'background-color: #f44336; color: white; padding: 3px 10px; border-radius: 5px;';
         }
-        // Return the status with the background color applied
         return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><span style="${statusColor}">${formattedVal}</span></p>`;
       }
 
@@ -573,10 +610,9 @@ function renderCard(item) {
         };
 
         if (isValidUrl(val)) {
-          // If the URL is valid, make it a clickable link
-          return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><a href="${val}" target="_blank" style="color: #007bff; text-decoration: none;">${val}</a></p>`;
+          // If the URL is valid, display the "View Image" link
+          return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br><a href="javascript:void(0);" onclick="showImageModal('${val}')" style="color: #007bff; text-decoration: none;">View Image</a></p>`;
         } else {
-          // If it's not a valid URL, just display the text
           return `<p style="font-size: 14px; font-weight: 600; color: #333;"><strong>${key}</strong><br>${formattedVal}</p>`;
         }
       }
@@ -586,6 +622,52 @@ function renderCard(item) {
     }).join('')}
   </div>`;
 }
+
+// Function to show the image modal
+function showImageModal(imageUrl) {
+  // Create a modal
+  const modal = document.createElement('div');
+  modal.style.position = 'fixed';
+  modal.style.top = 0;
+  modal.style.left = 0;
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  modal.style.zIndex = 9999;
+
+  // Create image element
+  const modalImage = document.createElement('img');
+  modalImage.src = imageUrl;
+  modalImage.style.maxWidth = '90%';
+  modalImage.style.maxHeight = '90%';
+  modalImage.style.objectFit = 'contain';
+
+  // Create close button
+  const closeButton = document.createElement('button');
+  closeButton.innerText = 'Close';
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '10px';
+  closeButton.style.right = '10px';
+  closeButton.style.padding = '10px';
+  closeButton.style.fontSize = '16px';
+  closeButton.style.backgroundColor = '#ff4436';
+  closeButton.style.color = 'white';
+  closeButton.style.border = 'none';
+  closeButton.style.cursor = 'pointer';
+
+  closeButton.onclick = () => {
+    document.body.removeChild(modal); // Close the modal
+  };
+
+  // Append elements to modal
+  modal.appendChild(modalImage);
+  modal.appendChild(closeButton);
+  document.body.appendChild(modal);
+}
+
 
   
 // Render Installment data (Second Card)
@@ -669,6 +751,8 @@ document.getElementById("installmentCard").addEventListener("click", function ()
   document.getElementById("secondInstallmentCard").style.display = "none";
   document.getElementById("installmentForm").style.display = "block";
   document.getElementById("secondInstallmentForm").style.display = "none"; // Ensure second form is hidden
+  fillUserDetails();
+
 });
 
 // Handle the second card click to toggle the second form visibility
@@ -723,10 +807,17 @@ document.getElementById("installmentform").addEventListener("submit", async func
   const email = localStorage.getItem('welfareEmail');
   const name = document.getElementById("name").value.trim();
   const roomNumber = document.getElementById("roomNumber").value.trim();
-  const installmentDate = document.getElementById("installmentDate").value;
+  const rawinstallmentDate = document.getElementById("installmentDate").value;
   const installmentAmount = document.getElementById("installmentAmount").value;
   const installmentMode = document.getElementById("installmentMode").value;
   const screenshot = document.getElementById("screenshot").files[0];
+  // Format the date to dd-mm-yyyy
+  const date = new Date(rawinstallmentDate);
+  const day = String(date.getDate()).padStart(2, '0'); // Add leading zero for single-digit days
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero for single-digit months
+  const year = date.getFullYear();
+
+  const installmentDate = `${day}-${month}-${year}`;
 
   // Validate the room number
   if (!isValidRoomNumber(roomNumber)) {
@@ -739,6 +830,7 @@ document.getElementById("installmentform").addEventListener("submit", async func
     alert("Please fill in all the fields.");
     return;
   }
+
 
   // If mode is "Online", check if a screenshot is attached
   if (installmentMode === "Online" && !screenshot) {
@@ -805,7 +897,15 @@ async function uploadScreenshot(screenshot) {
 	    const email = localStorage.getItem('welfareEmail');
 	    const name = document.getElementById("name").value.trim();
 	    const roomNumber = document.getElementById("roomNumber").value.trim();
-	    const installmentDate = document.getElementById("installmentDate").value;
+	    const rawinstallmentDate = document.getElementById("installmentDate").value;
+            // Format the date to dd-mm-yyyy
+            const date = new Date(rawinstallmentDate);
+            const day = String(date.getDate()).padStart(2, '0'); // Add leading zero for single-digit days
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero for single-digit months
+            const year = date.getFullYear();
+
+            const installmentDate = `${day}-${month}-${year}`;
+
 	    const installmentAmount = document.getElementById("installmentAmount").value;
             const datetime = new Date().toISOString(); // Get the current datetime in ISO format
             const fileName = `${name}_${roomNumber}_${installmentAmount}_${installmentDate}_actual_${submitting}_${datetime}_${email}`;
